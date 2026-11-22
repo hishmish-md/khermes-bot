@@ -1,3 +1,8 @@
+﻿## Multi-Agent Sprint Rules
+- Always read `INTERFACE_CONTRACT.md` and `TASKS.md` before writing code.
+- Never edit files outside your assigned domain in `TASKS.md`.
+- Never edit `run_agent.py` or `agent/` unless explicitly approved.
+- Run tests in your assigned scratch `HERMES_HOME` and port, then commit all changes on your branch.
 # Hermes Agent - Development Guide
 
 This root file is a hub: what applies everywhere, then a routing table. Each area's `AGENTS.md`
@@ -21,7 +26,7 @@ Two invariants shape almost every design decision and are the lens for reviewing
   system-prompt state defer to the next session, with an opt-in `--now` (`/skills install --now`).
 - **The core is a narrow waist; capability lives at the edges.** Every model tool is sent on
   every API call, so the bar for a new *core* tool is high. New capability should arrive as a
-  CLI command + skill, a service-gated tool, or a plugin — not as core surface.
+  CLI command + skill, a service-gated tool, or a plugin â€” not as core surface.
 
 A change to the stock system prompt or `tools[]` fails `tests/ci/test_prompt_surface.py` until
 `scripts/ci/prompt_surface.py render` is committed with it, and that snapshot
@@ -32,11 +37,11 @@ A change to the stock system prompt or `tools[]` fails `tests/ci/test_prompt_sur
 The project's intent layer, for contributors and for the triage sweeper (which may only close on
 `implemented_on_main`, `cannot_reproduce` or `incoherent`; taste-based closes are a maintainer's
 call, and when in doubt a PR stays open). Long form with examples:
-`website/docs/developer-guide/contributing.md` § Contribution rubric.
+`website/docs/developer-guide/contributing.md` Â§ Contribution rubric.
 
 **Wanted:** real bug fixes (repro on `main`, the exact line, the whole class incl. sibling paths);
 reach at the edges (adapters, providers, models, UI features) wired into the existing setup UX;
-god-file → module refactors; extending before duplicating (3+ PRs in one category → an ABC +
+god-file â†’ module refactors; extending before duplicating (3+ PRs in one category â†’ an ABC +
 orchestrator); behaviour-contract tests; E2E with real imports against a temp `HERMES_HOME` for
 resolution, config, security and I/O changes; salvage by cherry-pick so authorship survives.
 
@@ -51,13 +56,13 @@ standalone plugin repo).
 isolation is often the design (profiles are islands on purpose), an absence can be load-bearing,
 and a fix that cannot point to the line where the bug manifests has an unverified premise.
 
-**Security:** `SECURITY.md` is the scope authority. A §3.1 finding goes private (GitHub Security
-Advisories or security@nousresearch.com), never into a public issue, PR, commit or comment; §3.2
-hardening is ordinary public work. Name the §2 boundary crossed, with a repro on `main`.
+**Security:** `SECURITY.md` is the scope authority. A Â§3.1 finding goes private (GitHub Security
+Advisories or security@nousresearch.com), never into a public issue, PR, commit or comment; Â§3.2
+hardening is ordinary public work. Name the Â§2 boundary crossed, with a repro on `main`.
 
-**Footprint ladder** (take the highest rung that solves it): extend existing code → CLI command +
-skill → service-gated tool (`check_fn` answers reachability/opt-in, never per-session surface) →
-plugin → MCP server in the catalog → new core tool (fundamental, broadly useful, unreachable
+**Footprint ladder** (take the highest rung that solves it): extend existing code â†’ CLI command +
+skill â†’ service-gated tool (`check_fn` answers reachability/opt-in, never per-session surface) â†’
+plugin â†’ MCP server in the catalog â†’ new core tool (fundamental, broadly useful, unreachable
 otherwise).
 
 ## Development Environment
@@ -77,15 +82,15 @@ The filesystem is canonical. Load-bearing entry points:
 
 ```
 hermes-agent/
-├── run_agent.py          # AIAgent facade; the turn loop lives in agent/turn_*.py
-├── model_tools.py        # Tool orchestration, handle_function_call(); discovery in tools/registry.py
-├── toolsets.py           # TOOLSETS dict, _HERMES_CORE_TOOLS
-├── cli.py                # HermesCLI (REPL, slash dispatch) + hermes_cli/cli_*_mixin.py
-├── persistence/          # storage interface and its sqlite/ backend
-├── hermes_constants.py   # get_hermes_home(), display_hermes_home() — profile-aware paths
-├── scripts/              # check, run_tests.sh, code_health/, ci/
-├── evals/                # live-model A/B and probe harnesses
-└── website/              # Docusaurus docs (developer-guide/ holds the long-form area docs)
+â”œâ”€â”€ run_agent.py          # AIAgent facade; the turn loop lives in agent/turn_*.py
+â”œâ”€â”€ model_tools.py        # Tool orchestration, handle_function_call(); discovery in tools/registry.py
+â”œâ”€â”€ toolsets.py           # TOOLSETS dict, _HERMES_CORE_TOOLS
+â”œâ”€â”€ cli.py                # HermesCLI (REPL, slash dispatch) + hermes_cli/cli_*_mixin.py
+â”œâ”€â”€ persistence/          # storage interface and its sqlite/ backend
+â”œâ”€â”€ hermes_constants.py   # get_hermes_home(), display_hermes_home() â€” profile-aware paths
+â”œâ”€â”€ scripts/              # check, run_tests.sh, code_health/, ci/
+â”œâ”€â”€ evals/                # live-model A/B and probe harnesses
+â””â”€â”€ website/              # Docusaurus docs (developer-guide/ holds the long-form area docs)
 ```
 
 **User state:** `~/.hermes/config.yaml` (settings), `.env` (secrets only), `logs/` (`hermes logs`);
@@ -99,14 +104,14 @@ measured startup cost or import hazard it names; no behaviour; `tools/connectors
 `<stem>/<topic>.py` holds the code. Flat `<stem>_<topic>.py` siblings (`gateway/run.py`,
 `tools/mcp_tool.py`) stay until touched; add none unless an area AGENTS.md still prescribes one
 (`tui_gateway` RPC methods, `tools/` backends). A family folder keeps its ABC/Protocol, one module
-per variant and a name → variant table (`tools/environments/`, its table still in
+per variant and a name â†’ variant table (`tools/environments/`, its table still in
 `terminal_tool_backends.py`). Tool folders register from `tool.py`; tests mirror folders.
 
 - **Find code by topic:** `search_files` for `def name` in `<stem>/` and `<stem>_*.py`, not the facade.
 - **Imports go at module top:** topic modules import one another, never the facade; a cycle means
   a shared name belongs in a lower module. Patch where the name is looked up.
-- **Size and complexity are ratcheted per unit:** new functions CC ≤ 20, ≤ 300 lines, nesting ≤ 6;
-  files ≤ 2,000 lines; units already over may only go down (move code into `<stem>/`).
+- **Size and complexity are ratcheted per unit:** new functions CC â‰¤ 20, â‰¤ 300 lines, nesting â‰¤ 6;
+  files â‰¤ 2,000 lines; units already over may only go down (move code into `<stem>/`).
 - **Shape:** code imports on 3.11 (no PEP 695 syntax); import has no side effect but tool registration
   (no I/O, threads, config or env reads); input is parsed where it enters into a frozen dataclass, `Enum`,
   `Literal` or the area's wire model (Pydantic in `tui_gateway`); one return shape per function;
@@ -128,7 +133,7 @@ per variant and a name → variant table (`tools/environments/`, its table still
   tickers, deferred callbacks, RPC methods, thread hops, child spawns) binds the owning profile scope
   explicitly; `os.environ`, module globals and import-time values hold the launch profile's, so an
   unbound read is a silent default-profile leak. Binding points and seams: `gateway/AGENTS.md`
-  § Profile scope (HX002/HX004/HX005/HX012, PS-P05/P06).
+  Â§ Profile scope (HX002/HX004/HX005/HX012, PS-P05/P06).
 - **Machine facts and executable lookup go through `hermes_platform`.**
 - **Dependencies carry upper bounds** (`>=floor,<next_major`; git URLs and Actions pinned to a SHA);
   after editing `pyproject.toml` run `hermes pm lock` and commit `uv.lock`; never mutate a Hermes
@@ -142,7 +147,7 @@ per variant and a name → variant table (`tools/environments/`, its table still
   are baselined; `scripts/boundary_lint.py` fails the test suite (not `scripts/check`) on new ones.
 - **A new config key or slash command ships with its docs** (`tests/ci/test_docs_drift.py`).
 - **Commits and PRs:** rebase onto `main` before merging (a squash from a stale branch silently
-  reverts newer fixes); 1–2 invariant tests per fix, proven red on the base.
+  reverts newer fixes); 1â€“2 invariant tests per fix, proven red on the base.
 - **Tests:** always `scripts/run_tests.sh`, never bare `pytest`; behaviour contracts, never
   change-detectors or source-reading tests; host-specific behaviour is tested on that host with
   `@pytest.mark.platforms(...)`, never by faking `sys.platform`; tests never write to `~/.hermes/`.
@@ -153,7 +158,7 @@ per variant and a name → variant table (`tools/environments/`, its table still
 |---|---|---|
 | `run_agent.py`, `agent/` | `agent/AGENTS.md` | turn phases, message-flow invariants, compression, model/aux resolution, i18n |
 | `cli.py`, `hermes_cli/` | `hermes_cli/AGENTS.md` | CLI mixins, slash registry, config system, skins, `hermes update`, profiles / multiplex |
-| `gateway/` | `gateway/AGENTS.md` | adapters, message guards, streaming, notifications, token locks, § Profile scope |
+| `gateway/` | `gateway/AGENTS.md` | adapters, message guards, streaming, notifications, token locks, Â§ Profile scope |
 | `plugins/platforms/` new adapter | `gateway/platforms/ADDING_A_PLATFORM.md` | step-by-step adapter guide |
 | `tools/`, `toolsets.py`, `model_tools.py` | `tools/AGENTS.md` | adding tools, registry, toolsets, delegation, session-scoped surface tools |
 | `plugins/`, `hermes_cli/plugins*.py` | `plugins/AGENTS.md` | plugin kinds, native compat contract, in-tree policy, boundary lint |
@@ -170,3 +175,4 @@ per variant and a name → variant table (`tools/environments/`, its table still
 | `providers/` | `providers/README.md` | `ProviderProfile` registry and ABC |
 
 PR workflow: `CONTRIBUTING.md` (maintainers: the `hermes-agent-dev` skill, not shipped here).
+

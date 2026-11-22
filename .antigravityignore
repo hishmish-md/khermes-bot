@@ -1,0 +1,7 @@
+﻿node_modules/
+.venv/
+web_ui/dist/
+__pycache__/
+.pytest_cache/
+*.gguf
+*.bin
